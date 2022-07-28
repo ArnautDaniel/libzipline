@@ -53,7 +53,14 @@ char* zipline_gethash(){
   }
   return path;
 }
-  
+
+void zipline_create_zip(const char* zipname, const char* targetdir){    
+  struct zip_t* zip = zip_open(zipname, ZIP_DEFAULT_COMPRESSION_LEVEL, 'w');
+  zip_walk(zip, targetdir);
+  zip_close(zip);
+  return;
+}
+
 void zipline_create(const char* pathname){
 
   char CWD[MAXPATH];
@@ -67,29 +74,32 @@ void zipline_create(const char* pathname){
   zipline_recursive_descent_copy(pathname, payload_dir);
 
   chdir(tempdir);
-  
-  struct zip_t* zip = zip_open("payload.zip", ZIP_DEFAULT_COMPRESSION_LEVEL, 'w');
-  zip_walk(zip, "payload");
-  zip_close(zip);
-
+  zipline_create_zip("payload.zip", "payload");
   zipline_sign();
   zipline_delete("payload");
   char* hash = zipline_gethash();
 
+  int counter = 0;
+  
   char finalfolder[MAXPATH];
-  snprintf(finalfolder, MAXPATH, "zipline-%s", hash);
+  counter = snprintf(finalfolder, MAXPATH, "zipline-%s", hash);
   mkdir(finalfolder, 0700);
 
   char finalcommand[MAXPATH];
-  snprintf(finalcommand, MAXPATH, "cp payload.zip %s && cp payload.zip.sig %s", finalfolder, finalfolder);
+  counter = snprintf(finalcommand, MAXPATH, "cp payload.zip %s && cp payload.zip.sig %s", finalfolder, finalfolder);
   system(finalcommand);
 
   char finalfolderzip[MAXPATH];
-  snprintf(finalfolderzip, MAXPATH, "%s.zip", finalfolder);
-  struct zip_t* final_zip = zip_open(finalfolderzip, ZIP_DEFAULT_COMPRESSION_LEVEL, 'w');
+  counter = snprintf(finalfolderzip, MAXPATH, "%s.zip", finalfolder);
+  
+  zipline_create_zip(finalfolderzip, finalfolder);
 
-  zip_walk(final_zip, finalfolder);
-  zip_close(final_zip);
+  char finalcopy[MAXPATH];
+  counter = snprintf(finalcopy, MAXPATH, "cp %s %s", finalfolderzip, CWD);
+  system(finalcopy);
+
+  chdir(CWD);
+  zipline_delete(tempdir);
   
   return;
 }
