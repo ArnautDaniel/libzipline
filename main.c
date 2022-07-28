@@ -61,6 +61,13 @@ void zipline_create_zip(const char* zipname, const char* targetdir){
   return;
 }
 
+void zipline_copy_file(const char* filename, const char* dst){
+  char command[MAXPATH*2];
+  snprintf(command, MAXPATH*2, "cp %s %s", filename, dst);
+  system(command);
+  return;
+}
+
 void zipline_create(const char* pathname){
 
   char CWD[MAXPATH];
@@ -77,27 +84,23 @@ void zipline_create(const char* pathname){
   zipline_create_zip("payload.zip", "payload");
   zipline_sign();
   zipline_delete("payload");
+  
   char* hash = zipline_gethash();
-
-  int counter = 0;
   
   char finalfolder[MAXPATH];
-  counter = snprintf(finalfolder, MAXPATH, "zipline-%s", hash);
+  snprintf(finalfolder, MAXPATH, "zipline-%s", hash);
   mkdir(finalfolder, 0700);
+  free(hash);
+  
+  zipline_copy_file("payload.zip", finalfolder);
+  zipline_copy_file("payload.zip.sig", finalfolder);
 
-  char finalcommand[MAXPATH];
-  counter = snprintf(finalcommand, MAXPATH, "cp payload.zip %s && cp payload.zip.sig %s", finalfolder, finalfolder);
-  system(finalcommand);
-
-  char finalfolderzip[MAXPATH];
-  counter = snprintf(finalfolderzip, MAXPATH, "%s.zip", finalfolder);
+  char finalfolderzip[MAXPATH+4];
+  snprintf(finalfolderzip, MAXPATH+4, "%s.zip", finalfolder);
   
   zipline_create_zip(finalfolderzip, finalfolder);
-
-  char finalcopy[MAXPATH];
-  counter = snprintf(finalcopy, MAXPATH, "cp %s %s", finalfolderzip, CWD);
-  system(finalcopy);
-
+  zipline_copy_file(finalfolderzip, CWD);
+  
   chdir(CWD);
   zipline_delete(tempdir);
   
