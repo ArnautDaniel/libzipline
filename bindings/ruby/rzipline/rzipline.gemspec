@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |s|
   s.name        = "rzipline"
-  s.version     = "0.0.1"
+  s.version     = "0.0.4"
   s.summary     = "Bindings to libzipline"
   s.description = "Allows for the creation of zipline packages."
   s.authors     = ["Arnaut Daniel"]

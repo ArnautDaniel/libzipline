@@ -8,10 +8,10 @@ module Rzipline
   end
 
   def self.import_symbols()
-    attach_function :zipline_create, [:string], :void
+    attach_function :zipline_create, [:string], :string
   end
 
   def self.create(pathname)
-    zipline_create(pathname)
+    return zipline_create(pathname)
   end
 end

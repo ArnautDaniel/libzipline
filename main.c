@@ -12,15 +12,14 @@ void zip_walk(struct zip_t *zip, const char *path);
 
 #define MAXPATH 4096
 
-void zipline_recursive_descent_copy(const char* src, const char* dst){
+void zipline_recursive_descent_copy(const char* src, const char* dst){\
   int len_src = strlen(src);
   int len_dst = strlen(dst);
-  int max = len_src + len_dst + 255;
+  int max = len_dst + len_src + 255;
   char buf[max];
 
   // Sufficient for linux,  add windows version.
   snprintf(buf, max, "cp -R %s %s", src, dst);
-  printf("%s", buf);
   system(buf);
   return;
 }
@@ -68,7 +67,7 @@ void zipline_copy_file(const char* filename, const char* dst){
   return;
 }
 
-void zipline_create(const char* pathname){
+char* zipline_create(const char* pathname){
 
   char CWD[MAXPATH];
   getcwd(CWD, sizeof(CWD));
@@ -78,6 +77,7 @@ void zipline_create(const char* pathname){
   char payload_dir[MAXPATH];
   snprintf(payload_dir, MAXPATH, "%s/payload", tempdir);
   mkdir(payload_dir, 0700);
+
   zipline_recursive_descent_copy(pathname, payload_dir);
 
   chdir(tempdir);
@@ -95,7 +95,7 @@ void zipline_create(const char* pathname){
   zipline_copy_file("payload.zip", finalfolder);
   zipline_copy_file("payload.zip.sig", finalfolder);
 
-  char finalfolderzip[MAXPATH+4];
+  char* finalfolderzip = malloc(sizeof(char) * MAXPATH + 4);
   snprintf(finalfolderzip, MAXPATH+4, "%s.zip", finalfolder);
   
   zipline_create_zip(finalfolderzip, finalfolder);
@@ -104,7 +104,7 @@ void zipline_create(const char* pathname){
   chdir(CWD);
   zipline_delete(tempdir);
   
-  return;
+  return finalfolderzip;
 }
 
 void zip_walk(struct zip_t *zip, const char *path) {
